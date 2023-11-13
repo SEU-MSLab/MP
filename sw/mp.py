@@ -51,7 +51,7 @@ def MP_e(x_target: np.ndarray, y_target: np.ndarray, M, K, N)->np.ndarray:
 
 def MP_v(x_target: np.ndarray, coef: np.ndarray, M, K)->np.ndarray:
     """
-    This is the coefficient extraction file based on MP DPD
+    This is the coefficient evaluation file based on MP DPD
     designed by Qianyun Lu, Feb. 2, 2018, qianyun.lu@seu.edu.cn
     
     Args:

@@ -1,0 +1,26 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: MP
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - name: Micowave System Lab @ Southeast University
+    city: Nanjing
+    country: CN
+    email: chao.yu@seu.edu.cn
+  - given-names: Zhe
+    family-names: Li
+    email: lizhe99@seu.edu.cn
+repository-code: 'https://github.com/SEU-MSLab/MP'
+abstract: >-
+  The software and hardware implementation of Memory
+  Polynomial algorithm
+keywords:
+  - FPGA
+  - Digital predistortion
+  - SystemVerilog
+license: MIT

@@ -27,7 +27,7 @@
 `endif
 
 module MP_LUT_top #(
-    parameter       M = 3,   // LUT的数量是M+1
+    parameter       M = 3,
     parameter       LUT_num = M + 1,
     parameter       n = LUT_num / 4 + 1,
     parameter       K = 7,

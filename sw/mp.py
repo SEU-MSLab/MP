@@ -43,7 +43,7 @@ def MP_e(x_target: np.ndarray, y_target: np.ndarray, M, K, N)->np.ndarray:
     X = np.empty((N, (M+1)*(K+1)), dtype='complex_')
     for m in range(M+1):
         for k in range(K+1):
-            X[:, m+k] = x_target[M-m:M-m+N] * np.power(np.abs(x_target[M-m:M-m+N]), k)
+            X[:, m*(K+1)+k] = x_target[M-m:M-m+N] * np.power(np.abs(x_target[M-m:M-m+N]), k)
     X[np.isnan(X)] = 0 # Remove NaN
     XH = np.conjugate(X.T)
     coef = np.linalg.pinv(XH.dot(X) + 0.000001*np.eye(X.shape[1])).dot(XH).dot(y_target.T)
@@ -69,12 +69,15 @@ def MP_v(x_target: np.ndarray, coef: np.ndarray, M, K)->np.ndarray:
     X = np.empty((N, (K+1)*(M+1)), dtype='complex_')
     for m in range(M+1):
         for k in range(K+1):
-            X[:, m+k] = x_target[M-m:M-m+N] * np.power(np.abs(x_target[M-m:M-m+N]), k)
+            X[:, m*(K+1)+k] = x_target[M-m:M-m+N] * np.power(np.abs(x_target[M-m:M-m+N]), k)
 
     y = X.dot(coef)
     return y
 
 if __name__ == "__main__":
+    print("This is the MP extraction and evaluation functions.")
+    print("To use these function, you need a PA_data.mat file")
+    print("And two signal in that file, named 'xorg' and 'yorg', repectivly.")
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-f', "--file", type=str, default='PA_data.mat', help='input file name')

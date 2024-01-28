@@ -8,7 +8,7 @@ message: >-
   metadata from this file.
 type: software
 authors:
-  - name: Micowave System Lab @ Southeast University
+  - name: Microwave System Lab @ Southeast University
     city: Nanjing
     country: CN
     email: chao.yu@seu.edu.cn

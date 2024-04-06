@@ -24,7 +24,9 @@
 //******************************************************************************
 `ifndef MP_LUT_TOP__SV
 `define MP_LUT_TOP__SV
-`endif
+
+`include "MP_LUT.sv"
+`include "dpram.sv"
 
 module MP_LUT_top #(
     parameter       M = 3,
@@ -257,3 +259,4 @@ module MP_LUT_top #(
 
 
 endmodule
+`endif

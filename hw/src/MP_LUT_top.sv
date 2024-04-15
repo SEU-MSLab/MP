@@ -29,11 +29,9 @@
 `include "dpram.sv"
 
 module MP_LUT_top #(
-    parameter       M = 3,
-    parameter       LUT_num = M + 1,
-    parameter       n = LUT_num / 4 + 1,
-    parameter       K = 7,
-    parameter       RESOLUTION = 4096
+    parameter int M = 10,
+    parameter int K = 7,
+    parameter int RESOLUTION = 4096
 )(
     input                               JESD_clk_i,
     input                               reset_i,
@@ -44,7 +42,7 @@ module MP_LUT_top #(
     input   [31:0]                      coeff_i,
 
     (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 MP_BRAM ADDR" *)
-    input   [$clog2(RESOLUTION) + $clog2(LUT_num) + 1:0]    coeff_addr_i,
+    input   [$clog2(RESOLUTION) + $clog2(LUT_NUM) + 1:0]    coeff_addr_i,
 
     (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 MP_BRAM EN" *)
     input                               coeff_en_i,
@@ -57,8 +55,10 @@ module MP_LUT_top #(
     output  [15:0]                      sample0_i_ila
 );
 
-    localparam COEFF_WIDTH  = $clog2(RESOLUTION);
-    localparam LUTNUM_WIDTH = $clog2(LUT_num);
+    localparam int LUT_NUM = M + 1;
+    localparam int N = LUT_NUM / 4 + 1;
+    localparam int COEFF_WIDTH  = $clog2(RESOLUTION);
+    localparam int LUTNUM_WIDTH = $clog2(LUT_NUM);
 
     reg     [31:0]                          coeff_data;
     reg     [COEFF_WIDTH+LUTNUM_WIDTH-1:0]  coeff_addr;
@@ -76,18 +76,18 @@ module MP_LUT_top #(
     reg signed  [15:0]          dac_data3_i;
     reg signed  [15:0]          dac_data3_q;
 
-    wire signed  [15:0]         dpd_data0_i [M:0];
-    wire signed  [15:0]         dpd_data0_q [M:0];
-    wire signed  [15:0]         dpd_data1_i [M:0];
-    wire signed  [15:0]         dpd_data1_q [M:0];
-    wire signed  [15:0]         dpd_data2_i [M:0];
-    wire signed  [15:0]         dpd_data2_q [M:0];
-    wire signed  [15:0]         dpd_data3_i [M:0];
-    wire signed  [15:0]         dpd_data3_q [M:0];
+    wire signed  [15:0]         dpd_data0_i [M+1];
+    wire signed  [15:0]         dpd_data0_q [M+1];
+    wire signed  [15:0]         dpd_data1_i [M+1];
+    wire signed  [15:0]         dpd_data1_q [M+1];
+    wire signed  [15:0]         dpd_data2_i [M+1];
+    wire signed  [15:0]         dpd_data2_q [M+1];
+    wire signed  [15:0]         dpd_data3_i [M+1];
+    wire signed  [15:0]         dpd_data3_q [M+1];
 
 
-    wire signed  [16*LUT_num-1:0]dpd_i_branch [3:0];
-    wire signed  [16*LUT_num-1:0]dpd_q_branch [3:0];
+    wire signed  [16*LUT_NUM-1:0]dpd_i_branch [4];
+    wire signed  [16*LUT_NUM-1:0]dpd_q_branch [4];
 
 
 
@@ -205,16 +205,16 @@ module MP_LUT_top #(
         assign dpd_data3_q[0] = dpd_q_branch[3][15:0];
 
 
-        for(i = 1; i < LUT_num; i = i + 1) begin
-            assign dpd_data0_i[i] = dpd_i_branch[(4*n-i)%4][i*16+:16]   + dpd_data0_i[i-1];
-            assign dpd_data1_i[i] = dpd_i_branch[(4*n-i+1)%4][i*16+:16] + dpd_data1_i[i-1];
-            assign dpd_data2_i[i] = dpd_i_branch[(4*n-i+2)%4][i*16+:16] + dpd_data2_i[i-1];
-            assign dpd_data3_i[i] = dpd_i_branch[(4*n-i+3)%4][i*16+:16] + dpd_data3_i[i-1];
+        for(i = 1; i < LUT_NUM; i = i + 1) begin
+            assign dpd_data0_i[i] = dpd_i_branch[(4*N-i)%4][i*16+:16]   + dpd_data0_i[i-1];
+            assign dpd_data1_i[i] = dpd_i_branch[(4*N-i+1)%4][i*16+:16] + dpd_data1_i[i-1];
+            assign dpd_data2_i[i] = dpd_i_branch[(4*N-i+2)%4][i*16+:16] + dpd_data2_i[i-1];
+            assign dpd_data3_i[i] = dpd_i_branch[(4*N-i+3)%4][i*16+:16] + dpd_data3_i[i-1];
 
-            assign dpd_data0_q[i] = dpd_q_branch[(4*n-i)%4][i*16+:16]   + dpd_data0_q[i-1];
-            assign dpd_data1_q[i] = dpd_q_branch[(4*n-i+1)%4][i*16+:16] + dpd_data1_q[i-1];
-            assign dpd_data2_q[i] = dpd_q_branch[(4*n-i+2)%4][i*16+:16] + dpd_data2_q[i-1];
-            assign dpd_data3_q[i] = dpd_q_branch[(4*n-i+3)%4][i*16+:16] + dpd_data3_q[i-1];
+            assign dpd_data0_q[i] = dpd_q_branch[(4*N-i)%4][i*16+:16]   + dpd_data0_q[i-1];
+            assign dpd_data1_q[i] = dpd_q_branch[(4*N-i+1)%4][i*16+:16] + dpd_data1_q[i-1];
+            assign dpd_data2_q[i] = dpd_q_branch[(4*N-i+2)%4][i*16+:16] + dpd_data2_q[i-1];
+            assign dpd_data3_q[i] = dpd_q_branch[(4*N-i+3)%4][i*16+:16] + dpd_data3_q[i-1];
         end
 
     endgenerate

@@ -22,9 +22,8 @@
 `define DPRAM__SV
 
 module dpram #(
-
-  parameter  DATA_WIDTH = 16,
-  parameter  ADDRESS_WIDTH = 5
+  parameter int DATA_WIDTH = 16,
+  parameter int ADDRESS_WIDTH = 5
   ) (
 
   input                               clka,

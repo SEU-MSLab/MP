@@ -1,6 +1,8 @@
 PROJECT ?= MP
 
-RTL_SRC := $(PWD)/../hw/src/MP_LUT_top.sv
+RTL_SRC := $(PWD)/../hw/src/MP_LUT_top.sv \
+		   $(PWD)/../hw/src/MP_LUT.sv \
+		   $(PWD)/../hw/src/dpram.sv
 XDC_SRC := $(PWD)/../constraint/timing.xdc \
 		   $(PWD)/../constraint/physical.xdc
 
@@ -8,11 +10,11 @@ PARAM := M=3 K=7 RESOLUTION=4096
 
 FPGA_PART = xcvc1902-vsva2197-2MP-e-S
 
-.PHONY: all create synth impl report bit clean
+.PHONY: all project synth impl report bit clean
 
-all: create synth impl report pdi
+all: project synth impl report pdi
 
-create: $(PROJECT).xpr
+project: $(PROJECT).xpr
 
 synth: $(PROJECT).runs/synth_1/$(PROJECT).dcp
 
@@ -26,13 +28,15 @@ create_project.tcl: $(RTL_SRC) $(XDC_SRC)
 	echo "create_project -force -part $(FPGA_PART) $(PROJECT)" > $@
 	echo "add_files -fileset sources_1 $(RTL_SRC)" >> $@
 	echo "add_files -fileset constrs_1 $(XDC_SRC)" >> $@
+	echo "set_property top MP_LUT_top [current_fileset]" >> $@
 
 config_param.tcl:
-	for x in $(PARAM); do echo 'set_property generic {' $$x '} [current_fileset]'>> $@; done
+	echo 'set_property generic {$(PARAM)} [current_fileset]'> $@
 
-run_synth.tcl: $(PROJECT).xpr
+run_synth.tcl: $(PROJECT).xpr config_param.tcl
 	echo "open_project $(PROJECT).xpr" > $@
 	echo "reset_run synth_1" >> $@
+	echo "source config_param.tcl" >> $@
 	echo "launch_runs -jobs `nproc` synth_1" >> $@
 	echo "wait_on_run synth_1" >> $@
 
@@ -55,8 +59,8 @@ run_pdi.tcl: $(PROJECT).runs/impl_1/$(PROJECT)_routed.dcp
 	echo "write_device_image -force $(PROJECT).runs/impl_1/$(PROJECT).pdi" >> $@
 
 # Create project
-$(PROJECT).xpr: create_project.tcl config_param.tcl
-	vivado -nojournal -nolog -mode batch $(foreach x,$?,-source $x)
+$(PROJECT).xpr: create_project.tcl
+	vivado -nojournal -nolog -mode batch -source $?
 
 # Synthesis
 $(PROJECT).runs/synth_1/$(PROJECT).dcp: run_synth.tcl

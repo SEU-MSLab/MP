@@ -28,12 +28,10 @@
 
 (* dont_touch = "yes" *)
 module MP_LUT#(
-    parameter       M = 3,
-    parameter       LUT_num = M + 1,
-    parameter       K = 7,
-    parameter       RESOLUTION =4096,
-    parameter       COEFF_WIDTH = $clog2(RESOLUTION),
-    parameter       BRANCH = 1  // The branch number count from 1 to 4
+    parameter int M = 3,
+    parameter int K = 7,
+    parameter int RESOLUTION =4096,
+    parameter int BRANCH = 1  // The branch number count from 1 to 4
 )(
     input                               JESD_clk_i,
     input                               AXI_clk_i,
@@ -44,8 +42,8 @@ module MP_LUT#(
 
     input   [31:0]                      coeff_data_i,
     input   [COEFF_WIDTH-1:0]           coeff_addr_i,
-    // coeff_num_i: The LUT number for writing, since the logic 
-    // is replicated The content is the same for every branch, 
+    // coeff_num_i: The LUT number for writing, since the logic
+    // is replicated The content is the same for every branch,
     // so we only need M+1 address width
     input   [$clog2(M):0]               coeff_num_i,
     input                               coeff_en_i,
@@ -54,6 +52,9 @@ module MP_LUT#(
     output  [16*LUT_num-1:0]            dpd_data_i,
     output  [16*LUT_num-1:0]            dpd_data_q
 );
+
+    localparam int LUT_num = M + 1;
+    localparam int COEFF_WIDTH = $clog2(RESOLUTION);
 
     // compute how many delay unit we need
     function integer funclog4;
@@ -69,23 +70,23 @@ module MP_LUT#(
 
     wire    [M:0]                   LUT_wea;    // controlled by coeff_num_i
     wire    [M:0]                   LUT_reb;
-    wire    [COEFF_WIDTH-1:0]       LUT_addr    [latency_num:0];
-    reg     signed  [31:0]          LUT_out     [M:0];
-    reg     signed  [15:0]          LUT_out_i   [M:0];
-    reg     signed  [15:0]          LUT_out_q   [M:0];
+    wire    [COEFF_WIDTH-1:0]       LUT_addr    [latency_num+1];
+    reg     signed  [31:0]          LUT_out     [M+1];
+    reg     signed  [15:0]          LUT_out_i   [M+1];
+    reg     signed  [15:0]          LUT_out_q   [M+1];
 
-    reg     signed  [31:0]          MUL_i       [M:0];
-    reg     signed  [31:0]          MUL_q       [M:0];
-    reg     signed  [31:0]          MUL_A       [M:0];
-    reg     signed  [31:0]          MUL_B       [M:0];
-    reg     signed  [31:0]          MUL_C       [M:0];
+    reg     signed  [31:0]          MUL_i       [M+1];
+    reg     signed  [31:0]          MUL_q       [M+1];
+    reg     signed  [31:0]          MUL_A       [M+1];
+    reg     signed  [31:0]          MUL_B       [M+1];
+    reg     signed  [31:0]          MUL_C       [M+1];
 
-    reg     signed  [31:0]          magnitude   [latency_num:0];
-    reg     signed  [15:0]          dac_i_reg   [latency_num:0];
-    reg     signed  [15:0]          dac_q_reg   [latency_num:0];
+    reg     signed  [31:0]          magnitude   [latency_num+1];
+    reg     signed  [15:0]          dac_i_reg   [latency_num+1];
+    reg     signed  [15:0]          dac_q_reg   [latency_num+1];
 
-    reg     signed  [15:0]          dpd_i_reg   [M:0];
-    reg     signed  [15:0]          dpd_q_reg   [M:0];
+    reg     signed  [15:0]          dpd_i_reg   [M+1];
+    reg     signed  [15:0]          dpd_q_reg   [M+1];
     reg     signed  [15:0]          dac_input_i_reg;
     reg     signed  [15:0]          dac_input_q_reg;
 
@@ -142,6 +143,8 @@ module MP_LUT#(
 
     generate
         for(i = 0; i < latency_num+1; i = i + 1) begin
+            // The content in LUT is always in B16_14
+            // However, depends on the input data, the magnitude may be in B16_14 or B16_15
             `ifdef B16_14
             assign LUT_addr[i] = magnitude[i][28] ? {COEFF_WIDTH{1'b1}} : magnitude[i][27-:COEFF_WIDTH];
             `elsif B16_15
